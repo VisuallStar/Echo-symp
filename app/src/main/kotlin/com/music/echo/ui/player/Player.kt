@@ -616,8 +616,7 @@ fun BottomSheetPlayer(
 
   LaunchedEffect(mediaMetadata?.id, playerBackground) {
     if (
-      playerBackground == PlayerBackgroundStyle.GRADIENT ||
-        playerBackground == PlayerBackgroundStyle.GLOW_ANIMATED
+      playerBackground == PlayerBackgroundStyle.GLOW_ANIMATED
     ) {
       val currentMetadata = mediaMetadata
       if (currentMetadata != null && currentMetadata.thumbnailUrl != null) {
@@ -1064,27 +1063,44 @@ fun BottomSheetPlayer(
           }
           PlayerBackgroundStyle.GRADIENT -> {
             AnimatedContent(
-              targetState = gradientColors,
+              targetState = backgroundThumbnailUrl,
               transitionSpec = { fadeIn(tween(800)).togetherWith(fadeOut(tween(800))) },
-              label = "gradientBackground"
-            ) { colors ->
-              if (colors.isNotEmpty()) {
-                val gradientColorStops =
-                  if (colors.size >= 3) {
-                    arrayOf(0.0f to colors[0], 0.5f to colors[1], 1.0f to colors[2])
-                  } else {
-                    arrayOf(
-                      0.0f to colors[0],
-                      0.6f to colors[0].copy(alpha = 0.7f),
-                      1.0f to Color.Black
+              label = "gradientBlurBackground"
+            ) { thumbnailUrl ->
+              if (thumbnailUrl != null) {
+                Box(modifier = Modifier.graphicsLayer { alpha = backgroundAlphaProvider() }) {
+                  AsyncImage(
+                    model =
+                      ImageRequest.Builder(context)
+                        .data(thumbnailUrl)
+                        .allowHardware(false)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                      .fillMaxSize()
+                      .blur(80.dp)
+                      .graphicsLayer {
+                        scaleX = 1.3f
+                        scaleY = 1.3f
+                      },
+                    colorFilter = ColorFilter.colorMatrix(
+                      ColorMatrix().apply { setToSaturation(1.4f) }
                     )
-                  }
-                Box(
-                  Modifier.fillMaxSize()
-                    .graphicsLayer { alpha = backgroundAlphaProvider() }
-                    .background(Brush.verticalGradient(colorStops = gradientColorStops))
-                    .background(Color.Black.copy(alpha = 0.2f))
-                )
+                  )
+                  Box(
+                    modifier = Modifier
+                      .fillMaxSize()
+                      .background(
+                        Brush.verticalGradient(
+                          colors = listOf(
+                            Color.Black.copy(alpha = 0.35f),
+                            Color.Black.copy(alpha = 0.55f)
+                          )
+                        )
+                      )
+                  )
+                }
               }
             }
           }
