@@ -1079,13 +1079,13 @@ fun BottomSheetPlayer(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                       .fillMaxSize()
-                      .blur(80.dp)
+                      .blur(25.dp)
                       .graphicsLayer {
-                        scaleX = 1.3f
-                        scaleY = 1.3f
+                        scaleX = 1.15f
+                        scaleY = 1.15f
                       },
                     colorFilter = ColorFilter.colorMatrix(
-                      ColorMatrix().apply { setToSaturation(1.4f) }
+                      ColorMatrix().apply { setToSaturation(1.25f) }
                     )
                   )
                   Box(
@@ -1094,8 +1094,8 @@ fun BottomSheetPlayer(
                       .background(
                         Brush.verticalGradient(
                           colors = listOf(
-                            Color.Black.copy(alpha = 0.35f),
-                            Color.Black.copy(alpha = 0.55f)
+                            Color.Black.copy(alpha = 0.20f),
+                            Color.Black.copy(alpha = 0.40f)
                           )
                         )
                       )
