@@ -1,0 +1,166 @@
+name: Build APK
+
+# Trigger: manually from Actions tab, or on push to main
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+          - debug
+          - release
+      abi_flavor:
+        description: 'ABI flavor'
+        required: true
+        default: 'universal'
+        type: choice
+        options:
+          - universal
+          - arm64
+          - armeabi
+          - x86
+          - x86_64
+      variant_flavor:
+        description: 'App variant'
+        required: true
+        default: 'foss'
+        type: choice
+        options:
+          - foss
+          - gms
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - '**.md'
+      - 'assets/**'
+      - 'Screenshots/**'
+      - '.github/ISSUE_TEMPLATE/**'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Checkout ───────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # ── Java / Gradle ─────────────────────────────────────────
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      # ── Android NDK ───────────────────────────────────────────
+      - name: Setup Android NDK
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;28.2.13676358" || true
+
+      # ── Resolve build parameters ──────────────────────────────
+      - name: Set build parameters
+        id: params
+        run: |
+          # Default values for push-triggered builds
+          BUILD_TYPE="${{ github.event.inputs.build_type || 'debug' }}"
+          ABI_FLAVOR="${{ github.event.inputs.abi_flavor || 'universal' }}"
+          VARIANT_FLAVOR="${{ github.event.inputs.variant_flavor || 'foss' }}"
+
+          # Capitalize first letter for Gradle task name
+          ABI_CAP="$(echo "$ABI_FLAVOR" | sed 's/^./\U&/')"
+          VARIANT_CAP="$(echo "$VARIANT_FLAVOR" | sed 's/^./\U&/')"
+          TYPE_CAP="$(echo "$BUILD_TYPE" | sed 's/^./\U&/')"
+
+          # Handle x86_64 special case (Gradle task name uses X86_64)
+          if [ "$ABI_FLAVOR" = "x86_64" ]; then
+            ABI_CAP="X86_64"
+          fi
+
+          TASK="assemble${ABI_CAP}${VARIANT_CAP}${TYPE_CAP}"
+          APK_NAME="Echo-Music-${ABI_FLAVOR}-${VARIANT_FLAVOR}-${BUILD_TYPE}"
+
+          echo "task=$TASK" >> "$GITHUB_OUTPUT"
+          echo "apk_name=$APK_NAME" >> "$GITHUB_OUTPUT"
+          echo "build_type=$BUILD_TYPE" >> "$GITHUB_OUTPUT"
+
+          echo "🔧 Gradle task: $TASK"
+          echo "📦 APK name:    $APK_NAME"
+
+      # ── Decode signing keystore (release builds only) ─────────
+      - name: Decode keystore
+        if: steps.params.outputs.build_type == 'release' && env.KEYSTORE_BASE64 != ''
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 -d > keystore.jks
+
+      # ── Generate debug keystore (debug builds) ────────────────
+      - name: Generate debug keystore
+        if: steps.params.outputs.build_type == 'debug'
+        run: |
+          mkdir -p "$HOME/.android"
+          if [ ! -f "$HOME/.android/debug.keystore" ]; then
+            keytool -genkeypair \
+              -keystore "$HOME/.android/debug.keystore" \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -dname "CN=Android Debug,O=Android,C=US" \
+              -keyalg RSA \
+              -validity 10000
+          fi
+
+      # ── Build APK ─────────────────────────────────────────────
+      - name: Build APK
+        env:
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew ${{ steps.params.outputs.task }} --no-daemon --stacktrace
+
+      # ── Find and rename APK ───────────────────────────────────
+      - name: Locate built APK
+        id: apk
+        run: |
+          APK_PATH=$(find app/build/outputs/apk -name "*.apk" -type f | head -1)
+          if [ -z "$APK_PATH" ]; then
+            echo "❌ No APK found!"
+            exit 1
+          fi
+          echo "path=$APK_PATH" >> "$GITHUB_OUTPUT"
+          echo "✅ Found APK: $APK_PATH"
+
+      # ── Upload APK as downloadable artifact ───────────────────
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.params.outputs.apk_name }}
+          path: app/build/outputs/apk/**/*.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      # ── Print download summary ────────────────────────────────
+      - name: Build summary
+        run: |
+          echo "## ✅ APK Build Complete" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Property | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|----------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Artifact** | \`${{ steps.params.outputs.apk_name }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **APK Path** | \`${{ steps.apk.outputs.path }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Trigger** | \`${{ github.event_name }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Commit** | \`${{ github.sha }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "📥 Download from the **Artifacts** section at the bottom of this workflow run." >> "$GITHUB_STEP_SUMMARY"
