@@ -88,7 +88,7 @@ jobs:
           fi
 
           TASK="assemble${ABI_CAP}${VARIANT_CAP}${TYPE_CAP}"
-          APK_NAME="Echo-Music-${ABI_FLAVOR}-${VARIANT_FLAVOR}-${BUILD_TYPE}"
+          APK_NAME="Muxify-${ABI_FLAVOR}-${VARIANT_FLAVOR}-${BUILD_TYPE}"
 
           echo "task=$TASK" >> "$GITHUB_OUTPUT"
           echo "apk_name=$APK_NAME" >> "$GITHUB_OUTPUT"
