@@ -57,33 +57,6 @@ fun AboutScreen(
   highlightKey: String? = null
 ) {
   val uriHandler = LocalUriHandler.current
-
-  data class Contributor(val login: String, val avatarUrl: String, val htmlUrl: String)
-  var contributors by remember { mutableStateOf<List<Contributor>>(emptyList()) }
-
-  LaunchedEffect(Unit) {
-    withContext(Dispatchers.IO) {
-      try {
-        val url = java.net.URL("https://api.github.com/repos/EchoMusicApp/Echo-Music/contributors")
-        val json = url.openStream().bufferedReader().use { it.readText() }
-        val array = JSONArray(json)
-        val list = mutableListOf<Contributor>()
-        for (i in 0 until array.length()) {
-          val obj = array.getJSONObject(i)
-          list.add(
-            Contributor(
-              obj.getString("login"),
-              obj.getString("avatar_url"),
-              obj.getString("html_url")
-            )
-          )
-        }
-        contributors = list
-      } catch (e: Exception) {
-        e.printStackTrace()
-      }
-    }
-  }
   val context = LocalContext.current
 
   Scaffold(
@@ -139,129 +112,6 @@ fun AboutScreen(
       verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
       item { AboutAppCard() }
-
-      if (contributors.isNotEmpty()) {
-        item {
-          Column(modifier = Modifier.fillMaxWidth()) {
-            echo.music.iad1tya.ui.component.PreferenceGroupTitle(title = "Contributors")
-            Row(
-              modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-              horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-              contributors.forEach { contributor ->
-                coil3.compose.AsyncImage(
-                  model = contributor.avatarUrl,
-                  contentDescription = contributor.login,
-                  modifier =
-                    Modifier.size(48.dp).clip(CircleShape).clickable {
-                      uriHandler.openUri(contributor.htmlUrl)
-                    },
-                  contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                )
-              }
-            }
-          }
-        }
-      }
-
-      item {
-        Material3SettingsGroup(
-          title = "Developer",
-          items =
-            listOf(
-              Material3SettingsItem(
-                icon = painterResource(R.drawable.website),
-                title = { Text("Website") },
-                description = { Text("iad1tya.cyou") },
-                onClick = { uriHandler.openUri("https://iad1tya.cyou") }
-              ),
-              Material3SettingsItem(
-                icon = painterResource(R.drawable.ic_instagram_new),
-                title = { Text("Instagram") },
-                description = { Text("@iad1tya") },
-                onClick = { uriHandler.openUri("https://instagram.com/iad1tya") }
-              ),
-              Material3SettingsItem(
-                icon = painterResource(R.drawable.ic_x_new),
-                title = { Text("X (Twitter)") },
-                description = { Text("@xad1tya") },
-                onClick = { uriHandler.openUri("https://x.com/xad1tya") }
-              )
-            )
-        )
-      }
-
-      item {
-        Material3SettingsGroup(
-          title = "Support",
-          items =
-            listOf(
-              Material3SettingsItem(
-                icon = painterResource(R.drawable.coffee),
-                title = { Text("Buy Me a Coffee") },
-                description = { Text("buymeacoffee.com/iad1tya") },
-                onClick = { uriHandler.openUri("https://buymeacoffee.com/iad1tya") }
-              ),
-              Material3SettingsItem(
-                icon = painterResource(R.drawable.ic_patreon_new),
-                title = { Text("Patreon") },
-                description = { Text("patreon.com/cw/iad1tya") },
-                onClick = { uriHandler.openUri("https://www.patreon.com/cw/iad1tya") }
-              ),
-              Material3SettingsItem(
-                icon = painterResource(R.drawable.upi_new),
-                title = { Text("UPI") },
-                description = { Text("iad1tya@upi") },
-                onClick = {
-                  uriHandler.openUri(
-                    "https://intradeus.github.io/http-protocol-redirector/?r=upi://pay?pa=iad1tya@upi&pn=Aditya%20Yadav&am=&tn=Thank%20You%20so%20much%20for%20this%20support"
-                  )
-                }
-              )
-            )
-        )
-      }
-
-      item {
-        Material3SettingsGroup(
-          title = "Community",
-          items =
-            listOf(
-              Material3SettingsItem(
-                icon = painterResource(R.drawable.ic_discord_new),
-                title = { Text("Discord") },
-                description = { Text("discord.gg/Xt5hgsJJuA") },
-                onClick = { uriHandler.openUri("https://discord.gg/Xt5hgsJJuA") }
-              )
-            )
-        )
-      }
-
-      /* item {
-          AboutSectionCard(title = "App") {
-              AboutActionRow(
-                  icon = painterResource(R.drawable.github),
-                  title = "GitHub",
-                  subtitle = "EchoMusicApp/Echo-Music",
-                  onClick = { uriHandler.openUri("https://github.com/EchoMusicApp/Echo-Music") },
-              )
-              AboutDivider()
-              AboutActionRow(
-                  icon = painterResource(R.drawable.ic_discord_new),
-                  title = "Discord",
-                  subtitle = "discord.gg/EcfV3AxH5c",
-                  onClick = { uriHandler.openUri("https://discord.gg/EcfV3AxH5c") },
-              )
-              AboutDivider()
-              AboutActionRow(
-                  icon = painterResource(R.drawable.ic_telegram_new),
-                  title = "Telegram",
-                  subtitle = "t.me/EchoMusicApp",
-                  onClick = { uriHandler.openUri("https://t.me/EchoMusicApp") },
-              )
-          }
-      } */
-
     }
   }
 }
@@ -274,15 +124,6 @@ private fun AboutAppCard() {
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-
-    var isEasterEggActive by remember { mutableStateOf(false) }
-    val rotation by
-      animateFloatAsState(
-        targetValue = if (isEasterEggActive) 180f else 0f,
-        animationSpec =
-          spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
-        label = "flip"
-      )
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -301,41 +142,23 @@ private fun AboutAppCard() {
       modifier =
         Modifier.size(100.dp)
           .graphicsLayer {
-            rotationY = rotation
             scaleX = scale
             scaleY = scale
-            cameraDistance = 12f * density
           }
-          .clip(CircleShape)
-          .clickable(
-            interactionSource = interactionSource,
-            indication = null,
-            onClick = { isEasterEggActive = !isEasterEggActive }
-          ),
+          .clip(CircleShape),
       contentAlignment = Alignment.Center
     ) {
-      if (rotation <= 90f) {
-        Image(
-          painter = painterResource(R.drawable.ic_launcher_nobg),
-          contentDescription = null,
-          colorFilter = ColorFilter.tint(if (isDark) Color.White else Color(0xFFEA3829)),
-          modifier = Modifier.fillMaxSize()
-        )
-      } else {
-        coil3.compose.AsyncImage(
-          model = "https://avatars.githubusercontent.com/u/147871321?v=4",
-          contentDescription = null,
-          modifier =
-            Modifier.fillMaxSize().graphicsLayer { rotationY = 180f }, // Un-flip the backside image
-          contentScale = androidx.compose.ui.layout.ContentScale.Crop
-        )
-      }
+      Image(
+        painter = painterResource(R.drawable.ic_launcher_nobg),
+        contentDescription = null,
+        modifier = Modifier.fillMaxSize()
+      )
     }
 
     Spacer(Modifier.height(4.dp))
 
     Text(
-      text = if (rotation <= 90f) "Echo Music" else "Developed by Aditya",
+      text = "Muxify",
       style = MaterialTheme.typography.titleLarge,
       fontWeight = FontWeight.Bold,
       color = MaterialTheme.colorScheme.onSurface,
