@@ -9,10 +9,10 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class ThemeViewModel : ViewModel() {
 
-  private val _darkMode = MutableStateFlow(DarkMode.AUTO)
+  private val _darkMode = MutableStateFlow(DarkMode.ON)
   val darkMode: StateFlow<DarkMode> = _darkMode.asStateFlow()
 
-  private val _pureBlack = MutableStateFlow(false)
+  private val _pureBlack = MutableStateFlow(true)
   val pureBlack: StateFlow<Boolean> = _pureBlack.asStateFlow()
 
   private val _selectedThemeColorInt = MutableStateFlow(DefaultThemeColor.hashCode())

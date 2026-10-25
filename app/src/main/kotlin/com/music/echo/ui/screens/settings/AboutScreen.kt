@@ -207,5 +207,22 @@ private fun AboutAppCard() {
         }
       }
     }
+
+    Spacer(Modifier.height(28.dp))
+
+    Column(
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.spacedBy(6.dp),
+      modifier = Modifier.padding(vertical = 12.dp)
+    ) {
+      listOf("BUILT", "FOR", "ONKAR", "SINGH", "🙌").forEach { word ->
+        Text(
+          text = word,
+          style = if (word == "🙌") MaterialTheme.typography.displayLarge else MaterialTheme.typography.displayMedium,
+          fontWeight = FontWeight.Black,
+          color = MaterialTheme.colorScheme.primary,
+        )
+      }
+    }
   }
 }

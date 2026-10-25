@@ -281,8 +281,8 @@ fun FloatingMiniPlayer(
         modifier = Modifier.size(controlSize),
       ) {
         Icon(
-          painter = painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
-          contentDescription = null,
+          painter = painterResource(if (isPlaying) R.drawable.ic_apple_pause else R.drawable.ic_apple_play),
+          contentDescription = if (isPlaying) "Pause" else "Play",
           tint = effectiveContentColor,
         )
       }
@@ -293,8 +293,8 @@ fun FloatingMiniPlayer(
           modifier = Modifier.size(controlSize),
         ) {
           Icon(
-            painter = painterResource(R.drawable.skip_next),
-            contentDescription = null,
+            painter = painterResource(R.drawable.ic_apple_next),
+            contentDescription = "Next track",
             tint = effectiveContentColor,
           )
         }

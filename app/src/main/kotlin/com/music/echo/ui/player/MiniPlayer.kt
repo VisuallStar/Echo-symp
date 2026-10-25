@@ -2,7 +2,23 @@ package echo.music.iad1tya.ui.player
 
 import android.content.res.Configuration
 import android.os.Build
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -194,16 +210,16 @@ fun MiniPlayer(
         MiniPlayerBackgroundStyleKey,
         defaultValue = PlayerBackgroundStyle.DEFAULT
       )
-    val pureBlackMini by rememberPreference(PureBlackMiniPlayerKey, defaultValue = false)
+    val pureBlackMini by rememberPreference(PureBlackMiniPlayerKey, defaultValue = true)
 
     val isSystemInDarkTheme = androidx.compose.foundation.isSystemInDarkTheme()
-    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.ON)
     val useDarkTheme =
       remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
       }
     val pureBlackGlobalPref by
-      rememberPreference(echo.music.iad1tya.constants.PureBlackKey, defaultValue = false)
+      rememberPreference(echo.music.iad1tya.constants.PureBlackKey, defaultValue = true)
     val globalPureBlack = pureBlackGlobalPref && useDarkTheme
 
     val isFollowTheme = miniPlayerBackground == PlayerBackgroundStyle.DEFAULT
@@ -268,9 +284,9 @@ fun MiniPlayer(
 private fun NewMiniPlayer(progressState: ProgressState, modifier: Modifier = Modifier) {
   val playerConnection = LocalPlayerConnection.current ?: return
 
-  val pureBlackMini by rememberPreference(PureBlackMiniPlayerKey, defaultValue = false)
+  val pureBlackMini by rememberPreference(PureBlackMiniPlayerKey, defaultValue = true)
   val isSystemInDarkTheme = isSystemInDarkTheme()
-  val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+  val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.ON)
   val useDarkTheme =
     remember(darkTheme, isSystemInDarkTheme) {
       if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
@@ -283,7 +299,7 @@ private fun NewMiniPlayer(progressState: ProgressState, modifier: Modifier = Mod
     )
 
   val pureBlackGlobalPref by
-    rememberPreference(echo.music.iad1tya.constants.PureBlackKey, defaultValue = false)
+    rememberPreference(echo.music.iad1tya.constants.PureBlackKey, defaultValue = true)
   val globalPureBlack = pureBlackGlobalPref && useDarkTheme
   val isFollowTheme = miniPlayerBackground == PlayerBackgroundStyle.DEFAULT
   val pureBlack = if (isFollowTheme) globalPureBlack else pureBlackMini
@@ -661,9 +677,9 @@ private fun NewMiniPlayerSongInfo(
 @Composable
 private fun LegacyMiniPlayer(progressState: ProgressState, modifier: Modifier = Modifier) {
   val playerConnection = LocalPlayerConnection.current ?: return
-  val pureBlackMini by rememberPreference(PureBlackMiniPlayerKey, defaultValue = false)
+  val pureBlackMini by rememberPreference(PureBlackMiniPlayerKey, defaultValue = true)
   val isSystemInDarkTheme = isSystemInDarkTheme()
-  val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+  val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.ON)
   val useDarkTheme =
     remember(darkTheme, isSystemInDarkTheme) {
       if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
@@ -676,7 +692,7 @@ private fun LegacyMiniPlayer(progressState: ProgressState, modifier: Modifier = 
     )
 
   val pureBlackGlobalPref by
-    rememberPreference(echo.music.iad1tya.constants.PureBlackKey, defaultValue = false)
+    rememberPreference(echo.music.iad1tya.constants.PureBlackKey, defaultValue = true)
   val globalPureBlack = pureBlackGlobalPref && useDarkTheme
   val isFollowTheme = miniPlayerBackground == PlayerBackgroundStyle.DEFAULT
   val pureBlack = if (isFollowTheme) globalPureBlack else pureBlackMini
@@ -845,7 +861,7 @@ private fun LegacyMiniPlayer(progressState: ProgressState, modifier: Modifier = 
         enabled = canSkipNext && !isListenTogetherGuest,
         onClick = if (isListenTogetherGuest) ({}) else ({ playerConnection.seekToNext() }),
       ) {
-        Icon(painter = painterResource(R.drawable.skip_next), contentDescription = null)
+        Icon(painter = painterResource(R.drawable.ic_apple_next), contentDescription = "Next track")
       }
     }
 
@@ -860,7 +876,7 @@ private fun LegacyMiniPlayer(progressState: ProgressState, modifier: Modifier = 
         Icon(
           painter =
             painterResource(
-              if (offsetXAnimatable.value > 0) R.drawable.skip_previous else R.drawable.skip_next
+              if (offsetXAnimatable.value > 0) R.drawable.ic_apple_previous else R.drawable.ic_apple_next
             ),
           contentDescription = null,
           tint =
@@ -912,11 +928,11 @@ private fun LegacyPlayPauseButton(
           when {
             isListenTogetherGuest -> if (isMuted) R.drawable.volume_off else R.drawable.volume_up
             playbackState == Player.STATE_ENDED -> R.drawable.replay
-            effectiveIsPlaying -> R.drawable.pause
-            else -> R.drawable.play
+            effectiveIsPlaying -> R.drawable.ic_apple_pause
+            else -> R.drawable.ic_apple_play
           }
         ),
-      contentDescription = null,
+      contentDescription = if (effectiveIsPlaying) "Pause" else "Play",
       tint = tint,
     )
   }
@@ -1262,111 +1278,217 @@ private fun MiniPlayerControls(
     castHandler?.castIsPlaying?.collectAsState() ?: remember { mutableStateOf(false) }
   val effectiveIsPlaying = if (isCasting) castIsPlaying else isPlaying
   val isMuted by playerConnection.isMuted.collectAsState()
-  val wavyPlayPause by echo.music.iad1tya.utils.rememberPreference(echo.music.iad1tya.constants.WavyPlayPauseKey, defaultValue = true)
-  Row(verticalAlignment = Alignment.CenterVertically) {
-    IconButton(
+
+  Row(
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.spacedBy(4.dp)
+  ) {
+    // Previous Track Button (Apple Music style)
+    AppleMiniIconButton(
+      iconRes = R.drawable.ic_apple_previous,
+      contentDescription = "Previous track",
       enabled = canSkipPrevious && !isListenTogetherGuest,
-      onClick =
-        if (isListenTogetherGuest) ({})
-        else ({ playerConnection.player.seekToPreviousMediaItem() }),
-      modifier = Modifier.size(32.dp)
-    ) {
-      Icon(
-        painter = painterResource(R.drawable.skip_previous),
-        contentDescription = null,
-        tint = onSurfaceColor,
-        modifier = Modifier.size(20.dp)
-      )
-    }
-
-    Spacer(modifier = Modifier.width(12.dp))
-
-    val cookieIndent by
-      androidx.compose.animation.core.animateFloatAsState(
-        targetValue = if (effectiveIsPlaying) 0.08f else 0f,
-        animationSpec =
-          androidx.compose.animation.core.tween(
-            durationMillis = 300,
-            easing = androidx.compose.animation.core.LinearEasing
-          ),
-        label = "cookieIndent",
-      )
-
-    val infiniteTransition =
-      androidx.compose.animation.core.rememberInfiniteTransition(label = "rotation")
-    val rotation by
-      infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec =
-          androidx.compose.animation.core.infiniteRepeatable(
-            animation =
-              androidx.compose.animation.core.tween(
-                8000,
-                easing = androidx.compose.animation.core.LinearEasing
-              ),
-            repeatMode = androidx.compose.animation.core.RepeatMode.Restart
-          ),
-        label = "rotation"
-      )
-
-    Box(
-      contentAlignment = Alignment.Center,
-      modifier =
-        Modifier.size(48.dp).clip(CircleShape).clickable {
-          if (isListenTogetherGuest) {
-            playerConnection.toggleMute()
-            return@clickable
-          }
-          if (isCasting) {
-            if (castIsPlaying) castHandler?.pause() else castHandler?.play()
-          } else if (playbackState == Player.STATE_ENDED) {
-            playerConnection.player.seekTo(0, 0)
-            playerConnection.player.playWhenReady = true
-          } else {
-            playerConnection.togglePlayPause()
-          }
+      tint = onSurfaceColor,
+      iconSize = 22.dp,
+      touchTargetSize = 38.dp,
+      nudgeDirection = -1f,
+      onClick = {
+        if (!isListenTogetherGuest) {
+          playerConnection.player.seekToPreviousMediaItem()
         }
-    ) {
-      Box(
-        modifier =
-          Modifier.matchParentSize()
-            .graphicsLayer {
-              rotationZ = rotation
-              clip = true
-              shape = if (wavyPlayPause) PolygonCookieShape(sides = 9, indent = cookieIndent) else androidx.compose.foundation.shape.CircleShape
-            }
-            .background(primaryColor)
-      )
+      }
+    )
 
-      Icon(
-        painter =
-          painterResource(
-            when {
-              isListenTogetherGuest -> if (isMuted) R.drawable.volume_off else R.drawable.volume_up
-              playbackState == Player.STATE_ENDED -> R.drawable.replay
-              effectiveIsPlaying -> R.drawable.pause
-              else -> R.drawable.play
-            }
-          ),
-        contentDescription = null,
-        tint = onPrimaryColor,
-        modifier = Modifier.size(24.dp)
-      )
-    }
+    // Play / Pause Button (Apple Music style flat glyph with spring press & morph)
+    AppleMiniPlayPauseButton(
+      isPlaying = effectiveIsPlaying,
+      isEnded = playbackState == Player.STATE_ENDED,
+      isGuest = isListenTogetherGuest,
+      isMuted = isMuted,
+      tint = onSurfaceColor,
+      iconSize = 26.dp,
+      touchTargetSize = 42.dp,
+      onClick = {
+        if (isListenTogetherGuest) {
+          playerConnection.toggleMute()
+          return@AppleMiniPlayPauseButton
+        }
+        if (isCasting) {
+          if (castIsPlaying) castHandler?.pause() else castHandler?.play()
+        } else if (playbackState == Player.STATE_ENDED) {
+          playerConnection.player.seekTo(0, 0)
+          playerConnection.player.playWhenReady = true
+        } else {
+          playerConnection.togglePlayPause()
+        }
+      }
+    )
 
-    Spacer(modifier = Modifier.width(12.dp))
-
-    IconButton(
+    // Next Track Button (Apple Music style)
+    AppleMiniIconButton(
+      iconRes = R.drawable.ic_apple_next,
+      contentDescription = "Next track",
       enabled = canSkipNext && !isListenTogetherGuest,
-      onClick = if (isListenTogetherGuest) ({}) else ({ playerConnection.player.seekToNext() }),
-      modifier = Modifier.size(32.dp)
-    ) {
+      tint = onSurfaceColor,
+      iconSize = 22.dp,
+      touchTargetSize = 38.dp,
+      nudgeDirection = 1f,
+      onClick = {
+        if (!isListenTogetherGuest) {
+          playerConnection.player.seekToNext()
+        }
+      }
+    )
+  }
+}
+
+@Composable
+private fun AppleMiniIconButton(
+  iconRes: Int,
+  contentDescription: String,
+  enabled: Boolean,
+  tint: Color,
+  iconSize: Dp,
+  touchTargetSize: Dp,
+  nudgeDirection: Float,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val scope = rememberCoroutineScope()
+  val haptic = LocalHapticFeedback.current
+  var isPressed by remember { mutableStateOf(false) }
+  val nudgeOffset = remember { Animatable(0f) }
+
+  val scale by
+    animateFloatAsState(
+      targetValue = if (isPressed) 0.82f else 1f,
+      animationSpec = spring(dampingRatio = 0.7f, stiffness = 500f),
+      label = "appleMiniButtonScale",
+    )
+
+  Box(
+    contentAlignment = Alignment.Center,
+    modifier =
+      modifier
+        .size(touchTargetSize)
+        .alpha(if (enabled) 1f else 0.38f)
+        .offset(x = nudgeOffset.value.dp)
+        .graphicsLayer {
+          scaleX = scale
+          scaleY = scale
+        }
+        .semantics {
+          role = Role.Button
+          this.contentDescription = contentDescription
+        }
+        .pointerInput(enabled) {
+          if (!enabled) return@pointerInput
+          awaitEachGesture {
+            awaitFirstDown(requireUnconsumed = false)
+            isPressed = true
+            val up = waitForUpOrCancellation()
+            isPressed = false
+            if (up != null) {
+              haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+              if (nudgeDirection != 0f) {
+                scope.launch {
+                  nudgeOffset.animateTo(
+                    nudgeDirection * 3f,
+                    tween(70, easing = LinearOutSlowInEasing),
+                  )
+                  nudgeOffset.animateTo(
+                    0f,
+                    spring(dampingRatio = 0.6f, stiffness = 400f),
+                  )
+                }
+              }
+              onClick()
+            }
+          }
+        },
+  ) {
+    Icon(
+      painter = painterResource(iconRes),
+      contentDescription = contentDescription,
+      tint = tint,
+      modifier = Modifier.size(iconSize),
+    )
+  }
+}
+
+@Composable
+private fun AppleMiniPlayPauseButton(
+  isPlaying: Boolean,
+  isEnded: Boolean,
+  isGuest: Boolean,
+  isMuted: Boolean,
+  tint: Color,
+  iconSize: Dp,
+  touchTargetSize: Dp,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val haptic = LocalHapticFeedback.current
+  var isPressed by remember { mutableStateOf(false) }
+
+  val scale by
+    animateFloatAsState(
+      targetValue = if (isPressed) 0.82f else 1f,
+      animationSpec = spring(dampingRatio = 0.7f, stiffness = 500f),
+      label = "appleMiniPlayPauseScale",
+    )
+
+  Box(
+    contentAlignment = Alignment.Center,
+    modifier =
+      modifier
+        .size(touchTargetSize)
+        .graphicsLayer {
+          scaleX = scale
+          scaleY = scale
+        }
+        .semantics {
+          role = Role.Button
+          contentDescription = if (isPlaying) "Pause" else "Play"
+        }
+        .pointerInput(Unit) {
+          awaitEachGesture {
+            awaitFirstDown(requireUnconsumed = false)
+            isPressed = true
+            val up = waitForUpOrCancellation()
+            isPressed = false
+            if (up != null) {
+              haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+              onClick()
+            }
+          }
+        },
+  ) {
+    AnimatedContent(
+      targetState =
+        when {
+          isGuest -> if (isMuted) R.drawable.volume_off else R.drawable.volume_up
+          isEnded -> R.drawable.replay
+          isPlaying -> R.drawable.ic_apple_pause
+          else -> R.drawable.ic_apple_play
+        },
+      transitionSpec = {
+        (scaleIn(initialScale = 0.8f, animationSpec = tween(180, easing = LinearOutSlowInEasing)) +
+            fadeIn(animationSpec = tween(180)))
+          .togetherWith(
+            scaleOut(
+              targetScale = 0.8f,
+              animationSpec = tween(180, easing = FastOutLinearInEasing),
+            ) + fadeOut(animationSpec = tween(180))
+          )
+      },
+      label = "AppleMiniPlayPauseMorph",
+    ) { iconRes ->
       Icon(
-        painter = painterResource(R.drawable.skip_next),
-        contentDescription = null,
-        tint = onSurfaceColor,
-        modifier = Modifier.size(20.dp)
+        painter = painterResource(iconRes),
+        contentDescription = if (isPlaying) "Pause" else "Play",
+        tint = tint,
+        modifier = Modifier.size(iconSize),
       )
     }
   }

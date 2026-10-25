@@ -31,8 +31,8 @@ val DefaultThemeColor = Color(0xFFED5564)
 
 @Composable
 fun echomusicTheme(
-  darkTheme: Boolean = isSystemInDarkTheme(),
-  pureBlack: Boolean = false,
+  darkTheme: Boolean = true,
+  pureBlack: Boolean = true,
   themeColor: Color = DefaultThemeColor,
   content: @Composable () -> Unit,
 ) {
