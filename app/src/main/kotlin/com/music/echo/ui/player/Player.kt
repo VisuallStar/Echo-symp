@@ -2625,7 +2625,6 @@ fun BottomSheetPlayer(
           }
         }
       }
-    }
 
     when (LocalConfiguration.current.orientation) {
       Configuration.ORIENTATION_LANDSCAPE -> {
