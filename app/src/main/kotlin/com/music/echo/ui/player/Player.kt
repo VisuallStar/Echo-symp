@@ -207,6 +207,7 @@ import echo.music.iad1tya.extensions.SwipeGesture
 import echo.music.iad1tya.extensions.togglePlayPause
 import echo.music.iad1tya.models.MediaMetadata
 import echo.music.iad1tya.playback.ExoDownloadService
+import echo.music.iad1tya.ui.component.AppleStyleTransportControls
 import echo.music.iad1tya.ui.component.BottomSheet
 import echo.music.iad1tya.ui.component.BottomSheetState
 import echo.music.iad1tya.ui.component.HeartBurstIcon
@@ -1499,13 +1500,6 @@ fun BottomSheetPlayer(
     },
   ) {
     val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
-      val playPauseRoundness by
-        animateDpAsState(
-          targetValue = if (isPlaying) 24.dp else 36.dp,
-          animationSpec = tween(durationMillis = 90, easing = LinearEasing),
-          label = "playPauseRoundness",
-        )
-
       Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -2426,248 +2420,54 @@ fun BottomSheetPlayer(
             fadeOut()
       ) {
         Column {
-          if (useNewPlayerDesign) {
-            Row(
-              horizontalArrangement = Arrangement.Center,
-              verticalAlignment = Alignment.CenterVertically,
-              modifier = Modifier.fillMaxWidth().padding(horizontal = PlayerHorizontalPadding)
-            ) {
-              val backInteractionSource = remember { MutableInteractionSource() }
-              val nextInteractionSource = remember { MutableInteractionSource() }
-              val playPauseInteractionSource = remember { MutableInteractionSource() }
-
-              val isPlayPausePressed by playPauseInteractionSource.collectIsPressedAsState()
-              val isBackPressed by backInteractionSource.collectIsPressedAsState()
-              val isNextPressed by nextInteractionSource.collectIsPressedAsState()
-
-              val playPauseScale by
-                animateFloatAsState(
-                  targetValue = if (isPlayPausePressed) 0.9f else 1f,
-                  animationSpec = spring(dampingRatio = 0.6f, stiffness = 500f),
-                  label = "playPauseScale"
-                )
-
-              val backButtonScale by
-                animateFloatAsState(
-                  targetValue = if (isBackPressed) 0.9f else 1f,
-                  animationSpec = spring(dampingRatio = 0.6f, stiffness = 500f),
-                  label = "backButtonScale"
-                )
-
-              val nextButtonScale by
-                animateFloatAsState(
-                  targetValue = if (isNextPressed) 0.9f else 1f,
-                  animationSpec = spring(dampingRatio = 0.6f, stiffness = 500f),
-                  label = "nextButtonScale"
-                )
-
-              FilledIconButton(
-                onClick = playerConnection::seekToPrevious,
-                enabled = canSkipPrevious && !isListenTogetherGuest,
-                shape = CircleShape,
-                interactionSource = backInteractionSource,
-                colors =
-                  IconButtonDefaults.filledIconButtonColors(
-                    containerColor = sideButtonContainerColor,
-                    contentColor = sideButtonContentColor,
-                  ),
-                modifier =
-                  Modifier.size(68.dp).graphicsLayer {
-                    scaleX = backButtonScale
-                    scaleY = backButtonScale
-                  }
-              ) {
-                Icon(
-                  painter = painterResource(R.drawable.skip_previous),
-                  contentDescription = null,
-                  modifier = Modifier.size(32.dp)
-                )
+          AppleStyleTransportControls(
+            isPlaying = effectiveIsPlaying,
+            onPlayPause = {
+              if (isListenTogetherGuest) {
+                playerConnection.toggleMute()
+                return@AppleStyleTransportControls
               }
-
-              Spacer(modifier = Modifier.width(24.dp))
-
-              val cookieIndent by
-                animateFloatAsState(
-                  targetValue = if (effectiveIsPlaying) 0.08f else 0f,
-                  animationSpec = tween(durationMillis = 300, easing = LinearEasing),
-                  label = "cookieIndent",
-                )
-
-              val infiniteTransition = rememberInfiniteTransition(label = "rotation")
-              val rotation by
-                infiniteTransition.animateFloat(
-                  initialValue = 0f,
-                  targetValue = 360f,
-                  animationSpec =
-                    infiniteRepeatable(
-                      animation = tween(8000, easing = LinearEasing),
-                      repeatMode = RepeatMode.Restart
-                    ),
-                  label = "rotation"
-                )
-
-              FilledIconButton(
-                onClick = {
-                  if (isListenTogetherGuest) {
-                    playerConnection.toggleMute()
-                    return@FilledIconButton
-                  }
-                  if (isCasting) {
-                    if (castIsPlaying) {
-                      castHandler?.pause()
-                    } else {
-                      castHandler?.play()
-                    }
-                  } else if (playbackState == STATE_ENDED) {
-                    playerConnection.player.seekTo(0, 0)
-                    playerConnection.player.playWhenReady = true
-                  } else {
-                    playerConnection.togglePlayPause()
-                  }
-                },
-                shape =
-                  if (wavyPlayPause && cookieIndent > 0f) WavyShape(9, cookieIndent, rotation) else CircleShape,
-                interactionSource = playPauseInteractionSource,
-                colors =
-                  IconButtonDefaults.filledIconButtonColors(
-                    containerColor = textButtonColor,
-                    contentColor = iconButtonColor,
-                  ),
-                modifier =
-                  Modifier.size(84.dp).graphicsLayer {
-                    scaleX = playPauseScale
-                    scaleY = playPauseScale
-                  }
-              ) {
-                Row(
-                  verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.Center
-                ) {
-                  Icon(
-                    painter =
-                      painterResource(
-                        if (isListenTogetherGuest) {
-                          if (isMuted) R.drawable.volume_off else R.drawable.volume_up
-                        } else {
-                          if (effectiveIsPlaying) R.drawable.pause else R.drawable.play
-                        }
-                      ),
-                    contentDescription =
-                      if (isListenTogetherGuest) {
-                        if (isMuted) stringResource(R.string.unmute)
-                        else stringResource(R.string.mute)
-                      } else {
-                        if (effectiveIsPlaying) stringResource(R.string.pause)
-                        else stringResource(R.string.play)
-                      },
-                    modifier = Modifier.size(36.dp)
-                  )
+              if (isCasting) {
+                if (castIsPlaying) {
+                  castHandler?.pause()
+                } else {
+                  castHandler?.play()
                 }
+              } else if (playbackState == STATE_ENDED) {
+                playerConnection.player.seekTo(0, 0)
+                playerConnection.player.playWhenReady = true
+              } else {
+                playerConnection.togglePlayPause()
               }
-
-              Spacer(modifier = Modifier.width(24.dp))
-
-              FilledIconButton(
-                onClick = playerConnection::seekToNext,
-                enabled = canSkipNext && !isListenTogetherGuest,
-                shape = CircleShape,
-                interactionSource = nextInteractionSource,
-                colors =
-                  IconButtonDefaults.filledIconButtonColors(
-                    containerColor = sideButtonContainerColor,
-                    contentColor = sideButtonContentColor,
-                  ),
-                modifier =
-                  Modifier.size(68.dp).graphicsLayer {
-                    scaleX = nextButtonScale
-                    scaleY = nextButtonScale
-                  }
-              ) {
-                Icon(
-                  painter = painterResource(R.drawable.skip_next),
-                  contentDescription = null,
-                  modifier = Modifier.size(32.dp)
-                )
+            },
+            onPrevious = {
+              if (!isListenTogetherGuest) {
+                playerConnection.seekToPrevious()
               }
-            }
-          } else {
-            Row(
-              verticalAlignment = Alignment.CenterVertically,
-              modifier = Modifier.fillMaxWidth().padding(horizontal = PlayerHorizontalPadding),
-            ) {
-              Box(modifier = Modifier.weight(1f)) {
-                ResizableIconButton(
-                  icon = R.drawable.apple_skip_previous,
-                  enabled = canSkipPrevious && !isListenTogetherGuest,
-                  color = TextBackgroundColor,
-                  modifier =
-                    Modifier.size(48.dp)
-                      .align(Alignment.Center)
-                      .alpha(if (isListenTogetherGuest) 0.5f else 1f),
-                  onClick = playerConnection::seekToPrevious,
-                )
+            },
+            onNext = {
+              if (!isListenTogetherGuest) {
+                playerConnection.seekToNext()
               }
-
-              Spacer(Modifier.width(8.dp))
-
-              Box(
-                modifier =
-                  Modifier.size(100.dp).clip(RoundedCornerShape(playPauseRoundness)).clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                  ) {
-                    if (isListenTogetherGuest) {
-                      playerConnection.toggleMute()
-                      return@clickable
-                    }
-                    if (isCasting) {
-                      if (castIsPlaying) {
-                        castHandler?.pause()
-                      } else {
-                        castHandler?.play()
-                      }
-                    } else if (playbackState == STATE_ENDED) {
-                      playerConnection.player.seekTo(0, 0)
-                      playerConnection.player.playWhenReady = true
-                    } else {
-                      playerConnection.player.togglePlayPause()
-                    }
-                  },
-              ) {
-                Image(
-                  painter =
-                    painterResource(
-                      if (isListenTogetherGuest) {
-                        if (isMuted) R.drawable.volume_off else R.drawable.volume_up
-                      } else if (playbackState == STATE_ENDED) {
-                        R.drawable.replay
-                      } else if (effectiveIsPlaying) {
-                        R.drawable.pause_applemusic
-                      } else {
-                        R.drawable.play_applemusic
-                      },
-                    ),
-                  contentDescription = null,
-                  colorFilter = ColorFilter.tint(TextBackgroundColor),
-                  modifier = Modifier.align(Alignment.Center).size(72.dp),
-                )
+            },
+            onSeekBackward = {
+              if (!isListenTogetherGuest) {
+                val newPos = (playerConnection.player.currentPosition - 10000L).coerceAtLeast(0L)
+                playerConnection.seekTo(newPos)
               }
-
-              Spacer(Modifier.width(8.dp))
-
-              Box(modifier = Modifier.weight(1f)) {
-                ResizableIconButton(
-                  icon = R.drawable.apple_skip_next,
-                  enabled = canSkipNext && !isListenTogetherGuest,
-                  color = TextBackgroundColor,
-                  modifier =
-                    Modifier.size(48.dp)
-                      .align(Alignment.Center)
-                      .alpha(if (isListenTogetherGuest) 0.5f else 1f),
-                  onClick = playerConnection::seekToNext,
-                )
+            },
+            onSeekForward = {
+              if (!isListenTogetherGuest) {
+                val duration = playerConnection.player.duration.coerceAtLeast(0L)
+                val newPos = (playerConnection.player.currentPosition + 10000L).coerceAtMost(duration)
+                playerConnection.seekTo(newPos)
               }
-            }
+            },
+            canSkipPrevious = canSkipPrevious && !isListenTogetherGuest,
+            canSkipNext = canSkipNext && !isListenTogetherGuest,
+            tint = TextBackgroundColor,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = PlayerHorizontalPadding),
+          )
 
             if (!hidePlayerSlider) {
               Spacer(modifier = Modifier.height(8.dp))

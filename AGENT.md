@@ -354,3 +354,17 @@ The Local Taste Engine (`echo.music.iad1tya.generate`) provides offline, account
 ## Ambient Mode Canvas
 
 Ambient Mode keeps the existing album-art square and layers muted Canvas artwork inside that same clipped square. The normal album art remains underneath as the fallback; Canvas follows playback state and is non-interactive.
+
+## Apple Music Style Transport Controls
+
+The Now Playing screen features Apple Music style playback transport controls via `AppleStyleTransportControls`:
+- **Visuals:** Solid, filled, rounded-corner glyphs in theme/white with no borders, circular containers, or background shapes. Previous (double left-pointing triangles `⏪`), Play (large rounded triangle `▶`), Pause (rounded dual bars `⏸`), and Next (double right-pointing triangles `⏩`).
+- **Layout & Sizing:** Evenly spaced single horizontal row centered below the seek bar. Play/Pause icon is 60dp in a 72dp touch target; Previous/Next icons are 42dp in 56dp touch targets.
+- **Interactions & Feedback:**
+  - Scale down to 0.85 on touch press with bouncy spring animation and spring back on release.
+  - Smooth Play ↔ Pause crossfade + scale morphing (~200ms).
+  - Short directional horizontal nudge animation (±4dp) on tap.
+  - Continuous hold-to-scrub seeking (10-second intervals) on long-press of Previous/Next.
+  - Haptic feedback on tap and scrubbing triggers.
+  - Disabled states dimmed to 0.4 alpha.
+
