@@ -381,13 +381,11 @@ class App : Application(), SingletonImageLoader.Factory {
 
   override fun onTrimMemory(level: Int) {
     super.onTrimMemory(level)
-    if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW || level >= ComponentCallbacks2.TRIM_MEMORY_COMPLETE) {
+    if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW ||
+      level >= ComponentCallbacks2.TRIM_MEMORY_COMPLETE ||
+      level >= ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN
+    ) {
       SingletonImageLoader.get(this).memoryCache?.clear()
-    } else if (level >= ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN || level >= ComponentCallbacks2.TRIM_MEMORY_MODERATE) {
-      val cache = SingletonImageLoader.get(this).memoryCache
-      if (cache != null) {
-        cache.trimTo((cache.maxSize * 0.5).toLong())
-      }
     }
   }
 
