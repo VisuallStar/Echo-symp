@@ -1,8 +1,10 @@
 package echo.music.iad1tya
 
+import android.app.ActivityManager
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -187,7 +189,7 @@ class App : Application(), SingletonImageLoader.Factory {
       }
     }
 
-    YouTube.useLoginForBrowse = settings[UseLoginForBrowse] ?: true
+    YouTube.useLoginForBrowse = settings[UseLoginForBrowse] ?: false
     YouTube.ipVersion =
       settings[IpVersionKey]?.toEnum(defaultValue = IpVersion.AUTO) ?: IpVersion.AUTO
 
@@ -353,12 +355,16 @@ class App : Application(), SingletonImageLoader.Factory {
             }
             .first()
         }
+    val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
+    val isLowRam = activityManager?.isLowRamDevice == true
+    val memoryPercent = if (isLowRam) 0.10 else 0.15
+
     return ImageLoader.Builder(this)
       .apply {
         crossfade(true)
-        allowHardware(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+        allowHardware(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
 
-        memoryCache { MemoryCache.Builder().maxSizePercent(context, 0.25).build() }
+        memoryCache { MemoryCache.Builder().maxSizePercent(context, memoryPercent).build() }
         if (cacheSize == 0) {
           diskCachePolicy(CachePolicy.DISABLED)
         } else {
@@ -371,6 +377,18 @@ class App : Application(), SingletonImageLoader.Factory {
         }
       }
       .build()
+  }
+
+  override fun onTrimMemory(level: Int) {
+    super.onTrimMemory(level)
+    if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW || level >= ComponentCallbacks2.TRIM_MEMORY_COMPLETE) {
+      SingletonImageLoader.get(this).memoryCache?.clear()
+    } else if (level >= ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN || level >= ComponentCallbacks2.TRIM_MEMORY_MODERATE) {
+      val cache = SingletonImageLoader.get(this).memoryCache
+      if (cache != null) {
+        cache.trimTo((cache.maxSize * 0.5).toLong())
+      }
+    }
   }
 
   companion object {

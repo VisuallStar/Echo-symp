@@ -156,7 +156,6 @@ mostly-independent feature/integration:
 | `:lyrics` | Lyrics orchestration — LyricsHelper, LyricsEntry, LyricsUtils, all provider impls, AI translation |
 | `:innertube` | YouTube Music InnerTube API client (the core music source) |
 | `:kugou`, `:lrclib`, `:betterlyrics`, `:youlyplus`, `:paxsenixlyrics`, `:simpmusic` | Individual lyrics source providers (each consumed by `:lyrics`) |
-| `:shazamkit` | Music recognition ("Echo Find") |
 | `:canvas`, `:echomusiccanvas`, `:applecanvas` | Canvas-style looping video backgrounds for tracks (different providers) |
 | `:artistvideo` | Artist video features |
 | `:unison` | Cross-cutting shared utility module (check source before editing) |

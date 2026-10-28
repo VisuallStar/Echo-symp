@@ -73,7 +73,7 @@ fun AccountSettingsScreen(
   val (listenBrainzToken, onListenBrainzTokenChange) = rememberPreference(ListenBrainzTokenKey, "")
 
   val isLoggedIn = remember(innerTubeCookie) { "SAPISID" in parseCookieString(innerTubeCookie) }
-  val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(UseLoginForBrowse, true)
+  val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(UseLoginForBrowse, false)
   val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, true)
 
   val homeViewModel: HomeViewModel = hiltViewModel()
@@ -254,12 +254,13 @@ fun AccountSettingsScreen(
                       Spacer(modifier = Modifier.width(12.dp))
                     }
                     Text(
-                      text = if (isLoggedIn) accountName else "Log In",
+                      text = if (isLoggedIn) accountName else "Guest (No Login Required)",
                       color = MaterialTheme.colorScheme.primary,
                       style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                     )
                   }
                 },
+                description = if (!isLoggedIn) ({ Text("Full access is available without logging in") }) else null,
                 trailingContent =
                   if (isLoggedIn)
                     ({

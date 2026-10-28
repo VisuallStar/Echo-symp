@@ -69,7 +69,7 @@ fun GlassEffectSettings(
   scrollBehavior: TopAppBarScrollBehavior,
 ) {
   val (globalEnabled, onGlobalEnabledChange) =
-    rememberPreference(LiquidGlassGlobalEnabledKey, defaultValue = false)
+    rememberPreference(LiquidGlassGlobalEnabledKey, defaultValue = true)
   val (vibrancy, onVibrancyChange) = rememberPreference(LiquidGlassVibrancyKey, defaultValue = 1f)
   val (blurRadius, onBlurRadiusChange) =
     rememberPreference(LiquidGlassBlurRadiusKey, defaultValue = 8f)

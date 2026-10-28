@@ -50,35 +50,16 @@ fun BoxScope.HideOnScrollFAB(
           ),
         ),
   ) {
-    Column(
-      horizontalAlignment = Alignment.CenterHorizontally,
-      modifier = Modifier.padding(end = 16.dp, bottom = 64.dp)
+    FloatingActionButton(
+      onClick = onClick,
+      containerColor = MaterialTheme.colorScheme.onSurface,
+      contentColor = MaterialTheme.colorScheme.surface,
+      modifier = Modifier.padding(end = 16.dp, bottom = 64.dp),
     ) {
-      if (onRecognitionClick != null) {
-        SmallFloatingActionButton(
-          onClick = onRecognitionClick,
-          containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-          contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-          modifier = Modifier.size(40.dp)
-        ) {
-          Icon(
-            painter = painterResource(R.drawable.mic),
-            contentDescription = stringResource(R.string.recognize_music),
-            modifier = Modifier.size(20.dp)
-          )
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-      }
-      FloatingActionButton(
-        onClick = onClick,
-        containerColor = MaterialTheme.colorScheme.onSurface,
-        contentColor = MaterialTheme.colorScheme.surface,
-      ) {
-        Icon(
-          painter = painterResource(icon),
-          contentDescription = null,
-        )
-      }
+      Icon(
+        painter = painterResource(icon),
+        contentDescription = null,
+      )
     }
   }
 }
@@ -103,35 +84,16 @@ fun BoxScope.HideOnScrollFAB(
           ),
         ),
   ) {
-    Column(
-      horizontalAlignment = Alignment.CenterHorizontally,
-      modifier = Modifier.padding(end = 16.dp, bottom = 64.dp)
+    FloatingActionButton(
+      onClick = onClick,
+      containerColor = MaterialTheme.colorScheme.onSurface,
+      contentColor = MaterialTheme.colorScheme.surface,
+      modifier = Modifier.padding(end = 16.dp, bottom = 64.dp),
     ) {
-      if (onRecognitionClick != null) {
-        SmallFloatingActionButton(
-          onClick = onRecognitionClick,
-          containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-          contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-          modifier = Modifier.size(40.dp)
-        ) {
-          Icon(
-            painter = painterResource(R.drawable.mic),
-            contentDescription = stringResource(R.string.recognize_music),
-            modifier = Modifier.size(20.dp)
-          )
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-      }
-      FloatingActionButton(
-        onClick = onClick,
-        containerColor = MaterialTheme.colorScheme.onSurface,
-        contentColor = MaterialTheme.colorScheme.surface,
-      ) {
-        Icon(
-          painter = painterResource(icon),
-          contentDescription = null,
-        )
-      }
+      Icon(
+        painter = painterResource(icon),
+        contentDescription = null,
+      )
     }
   }
 }
@@ -156,35 +118,16 @@ fun BoxScope.HideOnScrollFAB(
           ),
         ),
   ) {
-    Column(
-      horizontalAlignment = Alignment.CenterHorizontally,
-      modifier = Modifier.padding(end = 16.dp, bottom = 64.dp)
+    FloatingActionButton(
+      onClick = onClick,
+      containerColor = MaterialTheme.colorScheme.onSurface,
+      contentColor = MaterialTheme.colorScheme.surface,
+      modifier = Modifier.padding(end = 16.dp, bottom = 64.dp),
     ) {
-      if (onRecognitionClick != null) {
-        SmallFloatingActionButton(
-          onClick = onRecognitionClick,
-          containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-          contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-          modifier = Modifier.size(40.dp)
-        ) {
-          Icon(
-            painter = painterResource(R.drawable.mic),
-            contentDescription = stringResource(R.string.recognize_music),
-            modifier = Modifier.size(20.dp)
-          )
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-      }
-      FloatingActionButton(
-        onClick = onClick,
-        containerColor = MaterialTheme.colorScheme.onSurface,
-        contentColor = MaterialTheme.colorScheme.surface,
-      ) {
-        Icon(
-          painter = painterResource(icon),
-          contentDescription = null,
-        )
-      }
+      Icon(
+        painter = painterResource(icon),
+        contentDescription = null,
+      )
     }
   }
 }

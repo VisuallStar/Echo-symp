@@ -51,7 +51,7 @@ fun SettingDialoge(
   val accountName by homeViewModel.accountName.collectAsState()
   val accountImageUrl by homeViewModel.accountImageUrl.collectAsState()
 
-  val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(UseLoginForBrowse, true)
+  val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(UseLoginForBrowse, false)
   val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, true)
 
   val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -83,9 +83,9 @@ fun SettingDialoge(
           buildList {
             add(
               Material3SettingsItem(
-                title = { Text(if (isLoggedIn) accountName else "Anonymous") },
+                title = { Text(if (isLoggedIn) accountName else "Guest") },
                 description = {
-                  Text(if (isLoggedIn) accountEmail.ifEmpty { "Logged In" } else "Not Logged In")
+                  Text(if (isLoggedIn) accountEmail.ifEmpty { "Logged In" } else "No login required")
                 },
                 icon = painterResource(R.drawable.account),
                 trailingContent =
@@ -101,7 +101,7 @@ fun SettingDialoge(
                   } else null,
                 onClick = {
                   onDismissRequest()
-                  if (isLoggedIn) onNavigate("settings/account") else onNavigate("login")
+                  onNavigate("settings/account")
                 }
               )
             )

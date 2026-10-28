@@ -196,7 +196,7 @@ private fun getTextColor(playerBackground: PlayerBackgroundStyle): Color {
 }
 
 object CanvasArtworkPlaybackCache {
-  private const val defaultMaxSize = 256
+  private const val defaultMaxSize = 32
   private val map = LinkedHashMap<String, CanvasArtwork>(defaultMaxSize, 0.75f, true)
   @Volatile private var maxSize = defaultMaxSize
 

@@ -1,5 +1,6 @@
 package echo.music.iad1tya.ui.player
 
+import android.app.ActivityManager
 import android.content.BroadcastReceiver
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -326,8 +327,10 @@ fun BottomSheetPlayer(
 
   val dataSaverEnabled by
     rememberPreference(key = echo.music.iad1tya.constants.DataSaverEnabledKey, defaultValue = false)
-  val enableCanvasPref by rememberPreference(CanvasThumbnailAnimationKey, true)
-  val enableCanvas = if (dataSaverEnabled) false else enableCanvasPref
+  val activityManager = remember(context) { context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager }
+  val isLowRam = remember(activityManager) { activityManager?.isLowRamDevice == true }
+  val enableCanvasPref by rememberPreference(CanvasThumbnailAnimationKey, defaultValue = false)
+  val enableCanvas = if (dataSaverEnabled || isLowRam) false else enableCanvasPref
 
   val shouldUseDarkButtonColors =
     remember(playerBackground, useDarkTheme) {
@@ -2952,8 +2955,7 @@ private fun BackgroundVideoView(
     DefaultTrackSelector(context).apply {
       parameters =
         buildUponParameters()
-          .setMaxVideoSize(4096, 4096)
-          .setForceHighestSupportedBitrate(true)
+          .setMaxVideoSize(1280, 720)
           .build()
     }
   }
@@ -2961,7 +2963,7 @@ private fun BackgroundVideoView(
   val exoPlayer = remember {
     ExoPlayer.Builder(context)
       .setTrackSelector(trackSelector)
-      .setLoadControl(DefaultLoadControl.Builder().setTargetBufferBytes(20 * 1024 * 1024).build())
+      .setLoadControl(DefaultLoadControl.Builder().setTargetBufferBytes(6 * 1024 * 1024).build())
       .build()
       .apply {
         repeatMode = Player.REPEAT_MODE_ONE

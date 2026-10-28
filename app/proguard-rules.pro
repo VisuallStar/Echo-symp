@@ -158,21 +158,6 @@
 -keepclassmembers class io.ktor.** { *; }
 -dontwarn io.ktor.**
 
-## Shazam Models
--keep class com.music.shazamkit.models.** { *; }
--keepclassmembers class com.music.shazamkit.models.** {
-    *;
-}
-
-## Kotlinx Serialization
--keepattributes *Annotation*
--keepclassmembers class com.music.shazamkit.models.** {
-    *** Companion;
-}
--keepclasseswithmembers class com.music.shazamkit.models.** {
-    kotlinx.serialization.KSerializer serializer(...);
-}
-
 ## Listen Together Serialization
 -keep class echo.music.iad1tya.listentogether.** { *; }
 -keepclassmembers class echo.music.iad1tya.listentogether.** {

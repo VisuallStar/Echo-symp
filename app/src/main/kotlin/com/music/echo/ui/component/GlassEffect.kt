@@ -28,7 +28,7 @@ import echo.music.iad1tya.ui.component.backdrop.shadow.Shadow
  */
 @Stable
 data class GlassEffectConfig(
-  val globalEnabled: Boolean = false,
+  val globalEnabled: Boolean = true,
   val vibrancy: Float = 1f,
   /** Blur in dp applied to glass pills. Defaults follow Kyant's Apple-matched recipe. */
   val blurRadius: Float = 8f,

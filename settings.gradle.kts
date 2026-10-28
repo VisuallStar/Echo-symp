@@ -26,7 +26,6 @@ include(
     ":lrclib",
     ":simpmusic",
     ":youlyplus",
-    ":shazamkit",
     ":artistvideo",
     ":canvas",
     ":echomusiccanvas",

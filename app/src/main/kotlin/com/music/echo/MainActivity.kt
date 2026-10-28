@@ -248,7 +248,6 @@ class MainActivity : ComponentActivity() {
   companion object {
     const val ACTION_SEARCH = "echo.music.iad1tya.action.SEARCH"
     const val ACTION_LIBRARY = "echo.music.iad1tya.action.LIBRARY"
-    const val ACTION_RECOGNITION = "echo.music.iad1tya.action.RECOGNITION"
     const val ACTION_NOW_PLAYING = "echo.music.iad1tya.action.NOW_PLAYING"
     const val ACTION_QUEUE = "echo.music.iad1tya.action.QUEUE"
     const val ACTION_OUTPUT_SWITCHER = "echo.music.iad1tya.action.OUTPUT_SWITCHER"
@@ -256,7 +255,6 @@ class MainActivity : ComponentActivity() {
     const val ACTION_LYRICS = "echo.music.iad1tya.action.LYRICS"
     const val ACTION_MEDIA_OUTPUT = "com.android.settings.panel.action.MEDIA_OUTPUT"
     const val EXTRA_MEDIA_OUTPUT_PACKAGE_NAME = "com.android.settings.panel.extra.PACKAGE_NAME"
-    const val EXTRA_AUTO_START_RECOGNITION = "auto_start_recognition"
   }
 
   @Inject lateinit var database: MusicDatabase
@@ -348,7 +346,6 @@ class MainActivity : ComponentActivity() {
     setIntent(intent)
     if (::navController.isInitialized) {
       handleDeepLinkIntent(intent, navController)
-      handleRecognitionIntent(intent, navController)
       handleAssistantSearchIntent(intent, navController)
     } else {
       pendingIntent = intent
@@ -827,15 +824,7 @@ class MainActivity : ComponentActivity() {
           playerConnection?.shuffleModeEnabled?.collectAsState()
             ?: remember { mutableStateOf(false) }
 
-        val onMusicRecognitionClick: (() -> Unit) =
-          remember(navController, playerBottomSheetState) {
-            {
-              if (playerBottomSheetState.isExpanded) {
-                playerBottomSheetState.collapseSoft()
-              }
-              navController.navigate("recognition") { launchSingleTop = true }
-            }
-          }
+        val onMusicRecognitionClick: (() -> Unit)? = null
 
         val mediaMetadata by
           playerConnection?.mediaMetadata?.collectAsState() ?: remember { mutableStateOf(null) }
@@ -941,7 +930,6 @@ class MainActivity : ComponentActivity() {
           }
           if (pendingIntent != null) {
             handleDeepLinkIntent(pendingIntent!!, navController)
-            handleRecognitionIntent(pendingIntent!!, navController)
             handleAssistantSearchIntent(pendingIntent!!, navController)
             pendingIntent = null
           } else if (
@@ -949,8 +937,6 @@ class MainActivity : ComponentActivity() {
               (intent.action == Intent.ACTION_VIEW || intent.action == Intent.ACTION_SEND)
           ) {
             handleDeepLinkIntent(intent, navController)
-          } else if (intent != null && intent.action == ACTION_RECOGNITION) {
-            handleRecognitionIntent(intent, navController)
           } else if (
             intent != null &&
               intent.action == android.provider.MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH
@@ -965,8 +951,6 @@ class MainActivity : ComponentActivity() {
               handleWidgetAction(newIntent)
               if (newIntent.action == Intent.ACTION_VIEW || newIntent.action == Intent.ACTION_SEND) {
                 handleDeepLinkIntent(newIntent, navController)
-              } else if (newIntent.action == ACTION_RECOGNITION) {
-                handleRecognitionIntent(newIntent, navController)
               } else if (
                 newIntent.action == android.provider.MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH
               ) {
@@ -995,7 +979,7 @@ class MainActivity : ComponentActivity() {
         val baseBg = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer
 
         val (liquidGlassGlobalEnabled) =
-          rememberPreference(LiquidGlassGlobalEnabledKey, defaultValue = false)
+          rememberPreference(LiquidGlassGlobalEnabledKey, defaultValue = true)
         val (liquidGlassVibrancy) = rememberPreference(LiquidGlassVibrancyKey, defaultValue = 1f)
         val (liquidGlassBlurRadius) =
           rememberPreference(LiquidGlassBlurRadiusKey, defaultValue = 8f)
@@ -1735,19 +1719,6 @@ class MainActivity : ComponentActivity() {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
       window.navigationBarColor =
         (if (isDark) Color.Transparent else Color.Black.copy(alpha = 0.2f)).toArgb()
-    }
-  }
-
-  private fun handleRecognitionIntent(
-    intent: Intent,
-    navController: NavHostController,
-  ) {
-    if (intent.action != ACTION_RECOGNITION) return
-    val autoStart = intent.getBooleanExtra(EXTRA_AUTO_START_RECOGNITION, false)
-
-    intent.removeExtra(EXTRA_AUTO_START_RECOGNITION)
-    navController.navigate(if (autoStart) "recognition?autoStart=true" else "recognition") {
-      launchSingleTop = true
     }
   }
 

@@ -1303,12 +1303,13 @@ class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListen
         .setLoadControl(
           DefaultLoadControl.Builder()
             .setBufferDurationsMs(
-              360_000, // min buffer: 6 minutes (will fetch heavily ahead)
-              360_000, // max buffer: 6 minutes
-              150, // bufferForPlaybackMs: 150ms for near-instant zero-latency startup
+              30_000, // min buffer: 30s
+              60_000, // max buffer: 60s
+              250, // bufferForPlaybackMs
               500 // bufferForPlaybackAfterRebufferMs: 500ms
             )
-            .setPrioritizeTimeOverSizeThresholds(true)
+            .setTargetBufferBytes(10 * 1024 * 1024)
+            .setPrioritizeTimeOverSizeThresholds(false)
             .build()
         )
         .setHandleAudioBecomingNoisy(true)

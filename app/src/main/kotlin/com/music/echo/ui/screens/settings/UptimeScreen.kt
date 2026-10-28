@@ -85,8 +85,7 @@ fun UptimeScreen(
 
   val otherServices = remember {
     mutableStateListOf(
-      ServiceStatus("Apple Music API", { "https://amp-api.music.apple.com" }),
-      ServiceStatus("Echo Find (Shazam)", { "https://amp.shazam.com" })
+      ServiceStatus("Apple Music API", { "https://amp-api.music.apple.com" })
     )
   }
 
