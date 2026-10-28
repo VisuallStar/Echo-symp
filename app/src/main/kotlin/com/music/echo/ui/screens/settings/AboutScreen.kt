@@ -47,6 +47,7 @@ import echo.music.iad1tya.ui.utils.backToMain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import org.json.JSONObject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -118,6 +119,52 @@ fun AboutScreen(
 
 @Composable
 private fun AboutAppCard() {
+  val context = LocalContext.current
+  val defaultLines = remember { listOf("BUILT", "BY", "WARIS", "SINGH", "🙌") }
+  val prefs = remember(context) { context.getSharedPreferences("about_remote_config", android.content.Context.MODE_PRIVATE) }
+  var dedicationLines by remember {
+    val cached = prefs.getString("dedication_lines", null)
+    val parsed =
+      if (cached != null) {
+        try {
+          val json = JSONObject(cached)
+          val arr = json.optJSONArray("lines")
+          if (arr != null && arr.length() > 0) {
+            (0 until arr.length()).map { arr.getString(it) }
+          } else null
+        } catch (_: Exception) {
+          null
+        }
+      } else null
+    mutableStateOf(parsed ?: defaultLines)
+  }
+
+  LaunchedEffect(Unit) {
+    withContext(Dispatchers.IO) {
+      try {
+        val url = java.net.URL("https://raw.githubusercontent.com/VisuallStar/Echo-symp/main/about_config.json")
+        val conn = (url.openConnection() as java.net.HttpURLConnection).apply {
+          connectTimeout = 5000
+          readTimeout = 5000
+          useCaches = false
+        }
+        if (conn.responseCode == 200) {
+          val jsonString = conn.inputStream.bufferedReader().use { it.readText() }
+          val json = JSONObject(jsonString)
+          val arr = json.optJSONArray("lines")
+          if (arr != null && arr.length() > 0) {
+            val fetched = (0 until arr.length()).map { arr.getString(it) }
+            withContext(Dispatchers.Main) {
+              dedicationLines = fetched
+            }
+            prefs.edit().putString("dedication_lines", jsonString).apply()
+          }
+        }
+      } catch (_: Exception) {
+      }
+    }
+  }
+
   Column(
     modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp, horizontal = 20.dp),
     horizontalAlignment = Alignment.CenterHorizontally,
@@ -215,10 +262,10 @@ private fun AboutAppCard() {
       verticalArrangement = Arrangement.spacedBy(6.dp),
       modifier = Modifier.padding(vertical = 12.dp)
     ) {
-      listOf("BUILT", "FOR", "ONKAR", "SINGH", "🙌").forEach { word ->
+      dedicationLines.forEach { word ->
         Text(
           text = word,
-          style = if (word == "🙌") MaterialTheme.typography.displayLarge else MaterialTheme.typography.displayMedium,
+          style = if (word == "🙌" || word.length <= 2) MaterialTheme.typography.displayLarge else MaterialTheme.typography.displayMedium,
           fontWeight = FontWeight.Black,
           color = MaterialTheme.colorScheme.primary,
         )
